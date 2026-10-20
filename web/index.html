@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#111b22" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>FB Publisher</title>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="#bikes">🛍 FB Publisher</a
+      ><span id="status">Подключение…</span
+      ><span id="active-account" class="badge" data-user-content></span
+      ><button id="pause" class="secondary">Пауза</button
+      ><button id="start">Запустить</button>
+      <button id="turbo" class="secondary" aria-pressed="false" title="Убирает искусственные паузы. Расписание, загрузка фото и ограничения Facebook сохраняются.">Турбо: выкл.</button>
+      <select id="language" aria-label="Язык">
+        <option value="en">English</option><option value="zh-CN">简体中文</option>
+        <option value="hi">हिन्दी</option><option value="es">Español</option>
+        <option value="ar">العربية</option><option value="fr">Français</option>
+        <option value="bn">বাংলা</option><option value="pt">Português</option>
+        <option value="ru">Русский</option><option value="ja">日本語</option>
+        <option value="pl">Polski</option>
+      </select>
+    </header>
+    <main>
+      <div id="notice" role="status" aria-live="polite"></div>
+      <div id="content"></div>
+    </main>
+    <nav aria-label="Разделы">
+      <a href="#bikes" id="catalog-nav">Товары</a><a href="#groups">Группы</a
+      ><a href="#publish">Публикация</a><a href="#history">История</a
+      ><a href="#profile">Аккаунты</a>
+    </nav>
+    <div id="help-widget"></div>
+    <dialog id="editor">
+      <form id="bike-form">
+        <div class="row">
+          <h2 id="editor-title" data-user-content></h2>
+          <button type="button" id="close-editor" class="secondary">
+            Закрыть
+          </button>
+        </div>
+        <label>Название<input id="product-name" maxlength="160" required /></label>
+        <div class="optional-heading">
+          <button type="button" id="add-heading" class="secondary" aria-label="Добавить заголовок" title="Добавить заголовок">+</button>
+          <div id="heading-fields" hidden>
+            <label>Заголовок объявления<input id="post-heading" maxlength="160" placeholder="Введи свой заголовок" /></label>
+            <button type="button" id="remove-heading" class="secondary" aria-label="Удалить заголовок" title="Удалить заголовок"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/></svg></button>
+          </div>
+        </div>
+        <p class="muted">Заголовок необязателен. Если поле пустое, публикация будет без заголовка. Цена — отдельной строкой внизу.</p>
+        <label>Цена, zł<input id="price" /></label
+        ><label>Описание<textarea id="description" rows="8"></textarea></label
+        ><div class="editor-actions row"><button type="submit">Сохранить</button>
+        <button type="button" id="preview-post" class="secondary">Предпросмотр объявления</button></div>
+        <div id="post-preview" class="panel" style="white-space:pre-wrap" data-user-content hidden></div>
+        <h3>Фотографии</h3>
+        <p class="muted">
+          Перетаскивай фото. Первое — главное. На телефоне можно использовать
+          стрелки.
+        </p>
+        <div id="photos" class="photos"></div>
+        <label
+          >Добавить фотографии<input
+            id="upload"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple /></label
+        ><button type="button" id="add-photos">Добавить выбранные фото</button>
+      </form>
+    </dialog>
+    <script src="/locales.js" defer></script>
+    <script src="/i18n.js" defer></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
