@@ -107,6 +107,18 @@ The legacy Streamlit entry point remains for compatibility; the supported user d
 - **Phone cannot connect:** first check local host access, then VPN/LAN reachability and firewall rules.
 - **Installation fails:** run `SETUP.cmd` and inspect the error. Do not upload private logs without redaction.
 
+## Support the project
+
+If FB Publisher helps you, you can support its continued development with a voluntary donation.
+
+**TRON / TRC20 wallet:**
+
+```text
+TAEVBKga2Lq4hm8e7eFrPc39CVQHRxfsyx
+```
+
+Please verify the address and network before sending. Donations are optional; the project remains free and open source. Bug reports, translations and code contributions are also welcome.
+
 ## License
 
 [MIT](LICENSE). Dependencies keep their own licenses.
