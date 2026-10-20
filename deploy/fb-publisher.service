@@ -1,0 +1,19 @@
+[Unit]
+Description=FB Publisher local dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=fbpublisher
+WorkingDirectory=/opt/fb-publisher
+Environment=PYTHONUNBUFFERED=1
+# Set DISPLAY to your private graphical session for manual login.
+# Environment=DISPLAY=:99
+ExecStart=/opt/fb-publisher/.venv/bin/python scripts/web.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
