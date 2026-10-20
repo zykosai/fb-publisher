@@ -119,9 +119,9 @@ TAEVBKga2Lq4hm8e7eFrPc39CVQHRxfsyx
 
 Please verify the address and network before sending. Donations are optional; the project remains free and open source. Bug reports, translations and code contributions are also welcome.
 
+contact: telegram - @cxacom
+
 ## License
 
 [MIT](LICENSE). Dependencies keep their own licenses.
 The license covers this software, not Facebook, third-party trademarks or user-uploaded content.
-
-contact: telegram - @cxacom
