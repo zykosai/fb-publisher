@@ -1,0 +1,45 @@
+# Local state: accounts, cookies, tokens, products, photos and all backups.
+/data/
+.env
+.env.*
+!.env.example
+.streamlit/
+*.db
+*.db-*
+*.sqlite*
+*.pem
+*.key
+*.pfx
+*.p12
+*storage-state*.json
+*storage_state*.json
+*cookies*.json
+
+# Environments, generated files and local diagnostics.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+/test-tmp/
+/dist/
+*.zip
+*.log
+.playwright-installed
+.setup-ready
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Historical, account-specific debugging tools; not part of the public app.
+/scripts/audit_project.py
+/scripts/facebook_diagnostic.py
+/scripts/diagnose_publication.py
+/scripts/publish_test_packet.py
+/scripts/verify_web.py
+/deploy/bike-publisher.service
+/deploy/bike-publisher-worker.service
