@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; color: #e8edf5; background: transparent; font: 14px/1.35 system-ui, sans-serif; }
+    #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(142px, 1fr)); gap: 10px; padding: 2px; }
+    .photo { min-width: 0; position: relative; overflow: hidden; border: 1px solid #3a4557; border-radius: 12px; background: #171d28; cursor: grab; user-select: none; touch-action: none; transition: transform .12s, border-color .12s, opacity .12s; }
+    .photo:active { cursor: grabbing; }
+    .photo.dragging { opacity: .4; transform: scale(.97); }
+    .photo.over { border-color: #67a6ff; transform: scale(1.025); }
+    .photo img { width: 100%; height: 112px; display: block; object-fit: cover; pointer-events: none; background: #202938; }
+    .badge { position: absolute; top: 7px; left: 7px; padding: 3px 7px; border-radius: 99px; color: white; background: #1677e8; font-size: 11px; font-weight: 700; }
+    .handle { padding: 7px 8px 3px; text-align: center; color: #abb6c7; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .remove { display: block; width: calc(100% - 14px); margin: 4px 7px 7px; padding: 5px 7px; border: 1px solid #78464a; border-radius: 7px; color: #ffb7b7; background: #332327; cursor: pointer; font: inherit; font-size: 12px; }
+    .remove:hover { background: #4a2a30; }
+    .empty { padding: 16px; color: #aeb8c7; border: 1px dashed #3a4557; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <div id="grid"></div>
+  <script>
+    const Streamlit = {
+      setComponentReady: () => window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:componentReady", apiVersion: 1}, "*"),
+      setComponentValue: value => window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:setComponentValue", value, dataType: "json"}, "*"),
+      setFrameHeight: height => window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:setFrameHeight", height}, "*")
+    };
+    const grid = document.getElementById("grid");
+    let photos = [];
+    let draggingId = null;
+    let changedByDrag = false;
+    let touchPointerId = null;
+
+    function send(action, extra = {}) {
+      Streamlit.setComponentValue({action, ...extra, event_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`});
+    }
+
+    function currentOrder() {
+      return [...grid.querySelectorAll(".photo")].map(tile => Number(tile.dataset.id));
+    }
+
+    function updateMainPhotoBadge() {
+      [...grid.querySelectorAll(".photo")].forEach((tile, index) => {
+        const badge = tile.querySelector(".badge");
+        if (index === 0 && !badge) {
+          const mainBadge = document.createElement("span");
+          mainBadge.className = "badge";
+          mainBadge.textContent = "Главное фото";
+          tile.appendChild(mainBadge);
+        } else if (index !== 0 && badge) {
+          badge.remove();
+        }
+      });
+    }
+
+    function moveBefore(target, clientX, clientY) {
+      const rect = target.getBoundingClientRect();
+      const after = clientY > rect.top + rect.height / 2 ||
+        (Math.abs(clientY - (rect.top + rect.height / 2)) < rect.height / 4 && clientX > rect.left + rect.width / 2);
+      grid.insertBefore(grid.querySelector(`[data-id="${draggingId}"]`), after ? target.nextSibling : target);
+    }
+
+    function syncFrameHeight() {
+      const contentHeight = Math.max(grid.scrollHeight, grid.getBoundingClientRect().height);
+      if (contentHeight > 0) Streamlit.setFrameHeight(Math.ceil(contentHeight + 12));
+    }
+
+    function scheduleFrameHeight() {
+      requestAnimationFrame(() => requestAnimationFrame(syncFrameHeight));
+    }
+
+    const sizeObserver = new ResizeObserver(scheduleFrameHeight);
+    sizeObserver.observe(grid);
+    sizeObserver.observe(document.body);
+    const contentObserver = new MutationObserver(scheduleFrameHeight);
+    contentObserver.observe(grid, {childList: true, subtree: true});
+    window.addEventListener("resize", scheduleFrameHeight);
+
+    function render(items) {
+      photos = Array.isArray(items) ? items : [];
+      grid.replaceChildren();
+      if (!photos.length) {
+        grid.innerHTML = '<div class="empty">Активных фотографий пока нет.</div>';
+        scheduleFrameHeight();
+        return;
+      }
+      for (const photo of photos) {
+        const tile = document.createElement("div");
+        tile.className = "photo";
+        tile.dataset.id = String(photo.id);
+        tile.draggable = true;
+        const img = document.createElement("img");
+        img.src = photo.src || "";
+        img.alt = photo.label || "Фото велосипеда";
+        img.draggable = false;
+        img.onerror = () => { img.alt = "Файл фотографии не найден"; };
+        tile.appendChild(img);
+        if (Number(photo.position) === 1) {
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = "Главное фото";
+          tile.appendChild(badge);
+        }
+        const handle = document.createElement("div");
+        handle.className = "handle";
+        handle.textContent = "⠿ Перетащите для сортировки";
+        tile.appendChild(handle);
+        const remove = document.createElement("button");
+        remove.className = "remove";
+        remove.type = "button";
+        remove.textContent = "Удалить фото";
+        remove.addEventListener("click", event => {
+          event.stopPropagation();
+          send("archive", {photo_id: Number(photo.id)});
+        });
+        tile.appendChild(remove);
+        tile.addEventListener("dragstart", event => {
+          draggingId = Number(photo.id);
+          changedByDrag = false;
+          tile.classList.add("dragging");
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", String(photo.id));
+        });
+        tile.addEventListener("dragend", () => {
+          tile.classList.remove("dragging");
+          grid.querySelectorAll(".over").forEach(el => el.classList.remove("over"));
+          if (changedByDrag) send("reorder", {photo_ids: currentOrder()});
+          draggingId = null;
+        });
+        tile.addEventListener("dragover", event => {
+          event.preventDefault();
+          if (draggingId === null || Number(photo.id) === draggingId) return;
+          event.dataTransfer.dropEffect = "move";
+          tile.classList.add("over");
+          moveBefore(tile, event.clientX, event.clientY);
+          changedByDrag = true;
+          updateMainPhotoBadge();
+        });
+        tile.addEventListener("dragleave", event => {
+          if (!tile.contains(event.relatedTarget)) tile.classList.remove("over");
+        });
+        tile.addEventListener("drop", event => {
+          event.preventDefault();
+          tile.classList.remove("over");
+        });
+        tile.addEventListener("pointerdown", event => {
+          if (event.pointerType !== "touch" || event.target.closest(".remove")) return;
+          event.preventDefault();
+          draggingId = Number(photo.id);
+          changedByDrag = false;
+          touchPointerId = event.pointerId;
+          tile.classList.add("dragging");
+          tile.setPointerCapture(event.pointerId);
+        });
+        grid.appendChild(tile);
+      }
+      grid.onpointermove = event => {
+        if (touchPointerId !== event.pointerId || draggingId === null) return;
+        const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".photo");
+        if (!target || Number(target.dataset.id) === draggingId) return;
+        moveBefore(target, event.clientX, event.clientY);
+        changedByDrag = true;
+        updateMainPhotoBadge();
+      };
+      grid.onpointerup = event => {
+        if (touchPointerId !== event.pointerId) return;
+        grid.querySelector(".dragging")?.classList.remove("dragging");
+        if (changedByDrag) send("reorder", {photo_ids: currentOrder()});
+        draggingId = null;
+        touchPointerId = null;
+      };
+      grid.onpointercancel = event => {
+        if (touchPointerId !== event.pointerId) return;
+        grid.querySelector(".dragging")?.classList.remove("dragging");
+        draggingId = null;
+        touchPointerId = null;
+        changedByDrag = false;
+      };
+      scheduleFrameHeight();
+    }
+
+    window.addEventListener("message", event => {
+      if (event.data && event.data.type === "streamlit:render") render(event.data.args.photos);
+    });
+    Streamlit.setComponentReady();
+  </script>
+</body>
+</html>
