@@ -31,7 +31,8 @@ jobs:
             requirements.txt
             requirements-dev.txt
       - run: python -m pip install -r requirements-dev.txt
-      - run: python -m playwright install --with-deps chrome
+      # Tests exercise both the Chrome channel and Playwright's bundled Chromium.
+      - run: python -m playwright install --with-deps chromium chrome
       - run: python scripts/check_distribution.py --git
       - run: python -m pytest -q
       - run: python scripts/build_release.py
